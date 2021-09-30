@@ -1,6 +1,6 @@
 # WP-Featurizer (F8R)
 
-This plugin allows you to use Feature Flags in Pugins and Themes. This plugin is primarily intended to be used inside a WP-Multisite.
+This plugin allows you to use Feature Flags in Plugins and Themes. This plugin is primarily intended to be used inside a WP-Multisite.
 Sell your Features and control them using WP-CLI in a WP Multisite.
 
 The Features should be stored globally in the network options. They should be mirrored into the [WordPress Object Cache](https://developer.wordpress.org/reference/classes/wp_object_cache/) system for best possible access performance. The cache should be updated on all relevant calls registering features or saving global values into it.
