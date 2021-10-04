@@ -96,6 +96,7 @@ f8r_get_all_features(): array[
 		vendor: string,
 		group: string,
 		feature: string,
+		teaser_title: string,
 		teaser_text_html: string,
 		teaser_url: string,
         enabled: bool
