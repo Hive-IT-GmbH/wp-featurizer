@@ -96,9 +96,10 @@ f8r_get_all_features(): array[
 		vendor: string,
 		group: string,
 		feature: string,
+		teaser_title: string,
 		teaser_text_html: string,
 		teaser_url: string,
-        enabled: bool
+        	enabled: bool
 	}
 ]
 ```
@@ -112,6 +113,7 @@ f8r_update_feature(f8r_feature: object {
 		vendor,
 		group,
 		feature,
+		teaser_title,
 		teaser_text_html,
 		teaser_url
 	})
