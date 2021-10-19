@@ -1,15 +1,7 @@
 # WP-Featurizer (F8R)
 
-This plugin allows you to use Feature Flags in Plugins and Themes. This plugin is primarily intended to be used inside a WP-Multisite.
-Sell your Features and control them using WP-CLI in a WP Multisite.
-
-The Features should be stored globally in the network options. They should be mirrored into the [WordPress Object Cache](https://developer.wordpress.org/reference/classes/wp_object_cache/) system for best possible access performance. The cache should be updated on all relevant calls registering features or saving global values into it.
-The feature state should be saved as per site option. It should as well be cached. Enabled / Disabled checks should thus mostly run against the cache instead of the database. Only if none exists, the values should be pulled from the option and a cache should be created.
-It is highly advised to use some persistent cachich like WP-Redis or Memcache.
-
-The cache key will be `<vendor>.<group>.<feature>`. A cache group of `f8r` will be used for all cache entries.
-
-This Plugin might be required to be installed as a MU-Plugin to be available before all plugins and themes are loaded.
+This plugin allows you to use Feature Flags in Plugins and Themes. This plugin can only be used inside a WP-Multisite.
+Sell your Features and control them using WP-CLI in your own controlled WP Multisite.
 
 ## Registering Features
 
@@ -29,7 +21,7 @@ f8r_register_feature( 'hiveit', 'portfolio', 'display_contactform' );
 
 ## Checkig for Features
 
-To check whether a Feature is enabled or not use the following code. 
+To check whether a Feature is enabled or not use the following code
 
 ### To prevent errors if F8R is not active on the current installation implement this function first in your Plugin / Theme:
 ```php
@@ -121,7 +113,7 @@ f8r_update_feature(f8r_feature: object {
 
 ## Using the WP-CLI API
 
-Package: hive-it/featurizer
+WP-Featurizer can be controlled using the WP-CLI
 
 ### Check for registered Features
 
