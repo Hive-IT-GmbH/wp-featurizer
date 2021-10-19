@@ -2,7 +2,7 @@
 /*
 Plugin: WP-Featurizer (F8R)
 Plugin URI: https://github.com/Hive-IT-GmbH/wp-featurizer
-Description: This plugin allows you to use Feature Flags in Plugins and Themes. This plugin is primarily intended to be used inside a WP-Multisite. Sell your Features and control them using WP-CLI in a WP Multisite.
+Description: This plugin allows you to use Feature Flags in Plugins and Themes. This plugin requires a WP-Multisite and control over the code and options.
 Version: 1.0
 Author: Hive-IT-GmbH
 Author URI: https://hive-it.de/
