@@ -1,14 +1,22 @@
 <?php
-/*
-Plugin: WP-Featurizer (F8R)
-Plugin URI: https://github.com/Hive-IT-GmbH/wp-featurizer
-Description: This plugin allows you to use Feature Flags in Plugins and Themes. This plugin requires a WP-Multisite and control over the code and options.
-Version: 1.0
-Author: Hive-IT-GmbH
-Author URI: https://hive-it.de/
-License: GPLv3 or later
-Network: true
-*/
+/**
+ * WP-Featurizer (F8R)
+ *
+ * @package           Hive-IT-GmbH/wp-featurizer
+ * @author            Hive-IT GmbH
+ * @copyright         2021 Hive-IT GmbH
+ * @license           GPL-3.0-or-later
+ *
+ * @wordpress-plugin
+ * Plugin: 	WP-Featurizer (F8R)
+ * Plugin URI: 	https://github.com/Hive-IT-GmbH/wp-featurizer
+ * Description: This plugin allows you to use Feature Flags in Plugins and Themes. This plugin requires a WP-Multisite and control over the code and options.
+ * Version: 	1.0
+ * Author: 	Hive-IT-GmbH
+ * Author URI: 	https://hive-it.de/
+ * License: 	GPLv3 or later
+ * Network: 	true
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	return false;
