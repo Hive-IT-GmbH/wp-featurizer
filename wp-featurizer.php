@@ -8,7 +8,7 @@
  * @license           GPL-3.0-or-later
  *
  * @wordpress-plugin
- * Plugin: 	WP-Featurizer (F8R)
+ * Plugin Name:	WP-Featurizer (F8R)
  * Plugin URI: 	https://github.com/Hive-IT-GmbH/wp-featurizer
  * Description: This plugin allows you to use Feature Flags in Plugins and Themes. This plugin requires a WP-Multisite and control over the code and options.
  * Version: 	1.0
