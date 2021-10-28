@@ -8,14 +8,14 @@
  * @license           GPL-3.0-or-later
  *
  * @wordpress-plugin
- * Plugin Name:	WP-Featurizer (F8R)
- * Plugin URI: 	https://github.com/Hive-IT-GmbH/wp-featurizer
- * Description: This plugin allows you to use Feature Flags in Plugins and Themes. This plugin requires a WP-Multisite and control over the code and options.
- * Version: 	1.0
- * Author: 	Hive-IT-GmbH
- * Author URI: 	https://hive-it.de/
- * License: 	GPLv3 or later
- * Network: 	true
+ * Plugin Name:       WP-Featurizer (F8R)
+ * Plugin URI:        https://github.com/Hive-IT-GmbH/wp-featurizer
+ * Description:       This plugin allows you to use Feature Flags in Plugins and Themes. This plugin requires a WP-Multisite and control over the code and options.
+ * Version:           1.0
+ * Author:            Hive-IT-GmbH
+ * Author URI:        https://hive-it.de/
+ * License:           GPLv3 or later
+ * Network:           true
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -190,13 +190,27 @@ function f8r_is_feature_enabled( string $vendor, string $group, string $feature 
  *
  * @return array
  */
-function f8r_get_all_features( int $blog_id ) {
+function f8r_get_all_features( int $blog_id = null ) {
 
-	$all_features = get_network_option( null, 'f8r_features', array() );
+	global $f8r_registered_features;
+	$all_features = $f8r_registered_features;
+	if ( ! $blog_id ) {
+		$blog_id = get_current_blog_id();
+	}
 
-	switch_to_blog( $blog_id );
+	// Get global feature data (teaser, ...)
+	$main_site_id = get_main_site_id();
+	switch_to_blog( $main_site_id );
+	$global_features_data = get_option( 'f8r_features', array() );
+	restore_current_blog();
 
-	$blog_features = get_option( 'f8r_features', array() );
+	$blog_features = array();
+	if ( $main_site_id != $blog_id ) {
+		// Get enabled blog features
+		switch_to_blog( $blog_id );
+		$blog_features = get_option( 'f8r_features', array() );
+		restore_current_blog();
+	}
 
 	if ( $all_features ) {
 		foreach ( $all_features as $vendor => $groups ) {
@@ -207,18 +221,30 @@ function f8r_get_all_features( int $blog_id ) {
 					} else {
 						$all_features[ $vendor ][ $group ][ $feature ]['enabled'] = false;
 					}
+					// Add global feature data
+					$all_features[ $vendor ][ $group ][ $feature ]['teaser_title']     = '';
+					$all_features[ $vendor ][ $group ][ $feature ]['teaser_text_html'] = '';
+					$all_features[ $vendor ][ $group ][ $feature ]['teaser_url']       = '';
+					if ( isset( $global_features_data[ $vendor ][ $group ][ $feature ]['teaser_title'] ) ) {
+						$all_features[ $vendor ][ $group ][ $feature ]['teaser_title'] = $global_features_data[ $vendor ][ $group ][ $feature ]['teaser_title'];
+					}
+					if ( isset( $global_features_data[ $vendor ][ $group ][ $feature ]['teaser_text_html'] ) ) {
+						$all_features[ $vendor ][ $group ][ $feature ]['teaser_text_html'] = $global_features_data[ $vendor ][ $group ][ $feature ]['teaser_text_html'];
+					}
+					if ( isset( $global_features_data[ $vendor ][ $group ][ $feature ]['teaser_url'] ) ) {
+						$all_features[ $vendor ][ $group ][ $feature ]['teaser_url'] = $global_features_data[ $vendor ][ $group ][ $feature ]['teaser_url'];
+					}
+
 				}
 			}
 		}
 	}
 
-	restore_current_blog();
-
 	return $all_features;
 }
 
 /**
- * Update feature
+ * Update global feature data
  *
  * @param array $feature_data
  *
@@ -243,8 +269,7 @@ function f8r_update_feature( array $feature_data ) {
 	$f8r_registered_features[ $vendor ][ $group ][ $feature ]['teaser_title']     = $teaser_title;
 	$f8r_registered_features[ $vendor ][ $group ][ $feature ]['teaser_text_html'] = $teaser_text_html;
 	$f8r_registered_features[ $vendor ][ $group ][ $feature ]['teaser_url']       = $teaser_url;
-	update_network_option( null, 'f8r_features', $f8r_registered_features );
-
+	update_option( 'f8r_features', $f8r_registered_features );
 }
 
 /**
