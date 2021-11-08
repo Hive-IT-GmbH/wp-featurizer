@@ -213,8 +213,14 @@ function f8r_get_all_features( int $blog_id = null ) {
 	}
 
 	if ( $all_features ) {
+		// sorting vendors
+		ksort( $all_features );
 		foreach ( $all_features as $vendor => $groups ) {
+			// sorting groups
+			ksort( $all_features[ $vendor ] );
 			foreach ( $groups as $group => $features ) {
+				// sorting features
+				ksort( $all_features[ $vendor ][ $group ] );
 				foreach ( $features as $feature => $enabled ) {
 					if ( isset( $blog_features[ $vendor ][ $group ] ) ) {
 						$all_features[ $vendor ][ $group ][ $feature ]['enabled'] = array_key_exists( $feature, $blog_features[ $vendor ][ $group ] );
