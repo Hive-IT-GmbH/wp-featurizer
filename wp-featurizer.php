@@ -65,16 +65,15 @@ function f8r_enable_feature( string $vendor, string $group, string $feature = ''
 	}
 
 	switch_to_blog( $blog_id );
-
 	$blog_features = get_option( 'f8r_features', array() );
 
 	if ( '' !== $feature ) {
 		// enable single feature
-		$blog_features[ $vendor ][ $group ][ $feature ] = true;
+		$blog_features[ $vendor ][ $group ][ $feature ]['enabled'] = true;
 	} else {
 		// enable all group-features
 		foreach ( $f8r_registered_features[ $vendor ][ $group ] as $group_feature => $value ) {
-			$blog_features[ $vendor ][ $group ][ $group_feature ] = true;
+			$blog_features[ $vendor ][ $group ][ $group_feature ]['enabled'] = true;
 		}
 	}
 	update_option( 'f8r_features', $blog_features );
@@ -95,6 +94,7 @@ function f8r_enable_feature( string $vendor, string $group, string $feature = ''
  * @return bool
  */
 function f8r_disable_feature( string $vendor, string $group, string $feature = '', int $blog_id ) {
+	global $f8r_registered_features;
 
 	$vendor  = sanitize_key( $vendor );
 	$group   = sanitize_key( $group );
@@ -106,15 +106,16 @@ function f8r_disable_feature( string $vendor, string $group, string $feature = '
 	}
 
 	switch_to_blog( $blog_id );
-
 	$blog_features = get_option( 'f8r_features', array() );
 
-	if ( '' !== $feature ) {
-		// disable/remove single feature
-		unset( $blog_features[ $vendor ][ $group ][ $feature ] );
-	} else {
-		// disable/remove all group-features
-		unset( $blog_features[ $vendor ][ $group ] );
+	// disable/remove all group-features
+	foreach ( $f8r_registered_features[ $vendor ][ $group ] as $group_feature => $feature_data ) {
+		if ( ( $group_feature == $feature && '' !== $feature ) || '' === $feature ) {
+			unset( $blog_features[ $vendor ][ $group ][ $group_feature ]['enabled'] );
+		}
+		if ( empty( $blog_features[ $vendor ][ $group ][ $group_feature ] ) ) {
+			unset( $blog_features[ $vendor ][ $group ][ $group_feature ] );
+		}
 	}
 
 	// remove empty data
@@ -167,7 +168,7 @@ function f8r_is_feature_enabled( string $vendor, string $group, string $feature 
 
 	if ( '' !== $feature ) {
 		// check against single feature
-		if ( ! isset( $blog_features[ $vendor ][ $group ][ $feature ] ) ) {
+		if ( ! ( $blog_features[ $vendor ][ $group ][ $feature ]['enabled'] ?? false ) ) {
 			$is_enabled = false;
 		}
 	} else {
@@ -178,7 +179,7 @@ function f8r_is_feature_enabled( string $vendor, string $group, string $feature 
 		// Are all feature enabled?
 		if ( $is_enabled ) {
 			foreach ( $f8r_registered_features[ $vendor ][ $group ] as $registered_feature => $value ) {
-				if ( ! isset( $blog_features[ $vendor ][ $group ][ $registered_feature ] ) ) {
+				if ( ! ( $blog_features[ $vendor ][ $group ][ $registered_feature ]['enabled'] ?? false ) ) {
 					$is_enabled = false;
 					break;
 				}
@@ -212,13 +213,10 @@ function f8r_get_all_features( int $blog_id = null ) {
 	$global_features_data = get_option( 'f8r_features', array() );
 	restore_current_blog();
 
-	$blog_features = array();
-	if ( $main_site_id != $blog_id ) {
-		// Get enabled blog features
-		switch_to_blog( $blog_id );
-		$blog_features = get_option( 'f8r_features', array() );
-		restore_current_blog();
-	}
+	// Get enabled blog features
+	switch_to_blog( $blog_id );
+	$blog_features = get_option( 'f8r_features', array() );
+	restore_current_blog();
 
 	if ( $all_features ) {
 		// sorting vendors
@@ -231,7 +229,7 @@ function f8r_get_all_features( int $blog_id = null ) {
 				ksort( $all_features[ $vendor ][ $group ] );
 				foreach ( $features as $feature => $enabled ) {
 					if ( isset( $blog_features[ $vendor ][ $group ] ) ) {
-						$all_features[ $vendor ][ $group ][ $feature ]['enabled'] = array_key_exists( $feature, $blog_features[ $vendor ][ $group ] );
+						$all_features[ $vendor ][ $group ][ $feature ]['enabled'] = $blog_features[ $vendor ][ $group ][ $feature ]['enabled'];
 					} else {
 						$all_features[ $vendor ][ $group ][ $feature ]['enabled'] = false;
 					}
@@ -262,7 +260,7 @@ function f8r_get_all_features( int $blog_id = null ) {
  *
  * @param array $feature_data
  *
- * @return false|void
+ * @return bool|false
  */
 function f8r_update_feature( array $feature_data ) {
 
@@ -278,6 +276,20 @@ function f8r_update_feature( array $feature_data ) {
 	// Is feature registered?
 	if ( ! f8r_check_registered_features( 'f8r_update_feature', $vendor, $group, $feature, true ) ) {
 		return false;
+	}
+
+	// save the "enable" status for/from main site features
+	$f8r_data = get_option( 'f8r_features', false );
+	if ( $f8r_data ) {
+		foreach ( $f8r_data as $vendor_d => $groups_d ) {
+			foreach ( $groups_d as $group_d => $features_d ) {
+				foreach ( $features_d as $feature_d => $feature_d_data ) {
+					if ( isset ( $f8r_data[ $vendor_d ][ $group_d ][ $feature_d ]['enabled'] ) ) {
+						$f8r_registered_features[ $vendor_d ][ $group_d ][ $feature_d ]['enabled'] = true;
+					}
+				}
+			}
+		}
 	}
 
 	$f8r_registered_features[ $vendor ][ $group ][ $feature ]['teaser_title']     = $teaser_title;
