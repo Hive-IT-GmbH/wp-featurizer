@@ -48,6 +48,8 @@ function f8r_register_feature( string $vendor, string $group, string $feature ) 
  * @param string $group
  * @param string $feature
  * @param int $blog_id
+ *
+ * @return bool
  */
 function f8r_enable_feature( string $vendor, string $group, string $feature = '', int $blog_id ) {
 
@@ -78,6 +80,8 @@ function f8r_enable_feature( string $vendor, string $group, string $feature = ''
 	update_option( 'f8r_features', $blog_features );
 
 	restore_current_blog();
+
+	return true;
 }
 
 /**
@@ -87,6 +91,8 @@ function f8r_enable_feature( string $vendor, string $group, string $feature = ''
  * @param string $group
  * @param string $feature
  * @param int $blog_id
+ *
+ * @return bool
  */
 function f8r_disable_feature( string $vendor, string $group, string $feature = '', int $blog_id ) {
 
@@ -127,6 +133,8 @@ function f8r_disable_feature( string $vendor, string $group, string $feature = '
 	}
 
 	restore_current_blog();
+
+	return true;
 }
 
 /**
@@ -276,6 +284,8 @@ function f8r_update_feature( array $feature_data ) {
 	$f8r_registered_features[ $vendor ][ $group ][ $feature ]['teaser_text_html'] = $teaser_text_html;
 	$f8r_registered_features[ $vendor ][ $group ][ $feature ]['teaser_url']       = $teaser_url;
 	update_option( 'f8r_features', $f8r_registered_features );
+
+	return true;
 }
 
 /**
