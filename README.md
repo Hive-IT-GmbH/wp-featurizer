@@ -3,6 +3,10 @@
 This plugin allows you to use Feature Flags in Plugins and Themes. This plugin can only be used inside a WP-Multisite.
 Sell your Features and control them using WP-CLI in your own controlled WP Multisite.
 
+## Install
+
+Clone this plugin into the `wp-content/mu-plugins` folder. Make sure to add an mu-autoloader or add a php file to the `mu-plugins` folder and `require_once` the `wp-featurizer/wp-featurizer.php` in there.
+
 ## Registering Features
 
 Featues have to be registered to be able to control them via WP-Admin and the Network Admin.
@@ -25,7 +29,7 @@ To check whether a Feature is enabled or not use the following code
 
 ### To prevent errors if F8R is not active on the current installation implement this function first in your Plugin / Theme:
 ```php
-if ( ! function_exists( 'f8r_is_feature_enabled' ) {
+if ( ! function_exists( 'f8r_is_feature_enabled' ) ): bool {
   function f8r_is_feature_enabled( $vendor = "", $group = "", $feature = "" ) {
 	  return true;
   }
