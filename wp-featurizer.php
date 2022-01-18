@@ -1,6 +1,7 @@
 <?php
 /**
  * WP-Featurizer (F8R)
+ * MU-Plugin
  *
  * @package           Hive-IT-GmbH/wp-featurizer
  * @author            Hive-IT GmbH
@@ -11,7 +12,7 @@
  * Plugin Name:	WP-Featurizer (F8R)
  * Plugin URI: 	https://github.com/Hive-IT-GmbH/wp-featurizer
  * Description: This plugin allows you to use Feature Flags in Plugins and Themes. This plugin requires a WP-Multisite and control over the code and options.
- * Version: 	1.2
+ * Version: 	1.2.1
  * Author: 	Hive-IT-GmbH
  * Author URI: 	https://hive-it.de/
  * License: 	GPLv3 or later
