@@ -297,6 +297,6 @@ function f8r_check_registered_features( string $function_name, string $vendor, s
 
 // Work with wp-cli
 if ( defined( 'WP_CLI' ) && WP_CLI && method_exists( 'WP_CLI', 'add_command' ) ) {
-	require_once WPMU_PLUGIN_DIR . '/f8r-wp-cli/class-featurizer-wp-cli-command.php';
+	require_once __DIR__ . '/f8r-wp-cli/class-featurizer-wp-cli-command.php';
 	WP_CLI::add_command( 'f8r', 'Featurizer_WP_CLI_Command' );
 }
