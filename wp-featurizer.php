@@ -207,10 +207,12 @@ function f8r_is_feature_enabled( string $vendor, string $group, string $feature 
  * @return array
  */
 function f8r_get_all_features( int $blog_id = 0 ) {
-
-	$all_features = get_network_option( null, 'f8r_features', array() );
+	global $f8r_registered_features;
+	
+	$all_features =	$f8r_registered_features;
 
 	if ( $blog_id != 0 ) {
+		$all_features = get_network_option( null, 'f8r_features', array() );
 		switch_to_blog( $blog_id );
 	}
 	
