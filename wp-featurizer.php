@@ -10,14 +10,14 @@
  * @license           GPL-3.0-or-later
  *
  * @wordpress-plugin
- * Plugin Name:       WP-Featurizer (F8R)
- * Plugin URI:        https://github.com/Hive-IT-GmbH/wp-featurizer
- * Description:       This plugin allows you to use Feature Flags in Plugins and Themes. This plugin requires a WP-Multisite and control over the code and options.
- * Version:           1.0
- * Author:            Hive-IT GmbH
- * Author URI:        https://hive-it.de/
- * License:           GPLv3 or later
- * Network:           true
+ * Plugin Name:   WP-Featurizer (F8R)
+ * Plugin URI:    https://github.com/Hive-IT-GmbH/wp-featurizer
+ * Description:   This plugin allows you to use Feature Flags in Plugins and Themes. This plugin requires a WP-Multisite and control over the code and options.
+ * Version:       1.3.0
+ * Author:        Hive-IT-GmbH
+ * Author URI:    https://hive-it.de/
+ * License:       GPLv3 or later
+ * Network:       true
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -53,20 +53,24 @@ function f8r_register_feature( string $vendor, string $group, string $feature ) 
  *
  * @return bool
  */
-function f8r_enable_feature( string $vendor, string $group, string $feature = '', int $blog_id ) {
+function f8r_enable_feature( string $vendor, string $group, string $feature = '', int $blog_id = 0 ): bool {
 
 	global $f8r_registered_features;
 
 	$vendor  = sanitize_key( $vendor );
 	$group   = sanitize_key( $group );
 	$feature = sanitize_key( $feature );
+	$blog_id = absint( $blog_id );
 
 	// Is group or feature registered?
 	if ( ! f8r_check_registered_features( 'f8r_enable_feature', $vendor, $group, $feature ) ) {
 		return false;
 	}
+	
+	if ( $blog_id != 0 ) {
+		switch_to_blog( $blog_id );
+	}
 
-	switch_to_blog( $blog_id );
 	$blog_features = get_option( 'f8r_features', array() );
 
 	if ( '' !== $feature ) {
@@ -78,11 +82,13 @@ function f8r_enable_feature( string $vendor, string $group, string $feature = ''
 			$blog_features[ $vendor ][ $group ][ $group_feature ]['enabled'] = true;
 		}
 	}
-	update_option( 'f8r_features', $blog_features );
+	$updated = update_option( 'f8r_features', $blog_features );
 
-	restore_current_blog();
+	if ( $blog_id != 0 ) {
+		restore_current_blog();
+	}
 
-	return true;
+	return $updated;
 }
 
 /**
@@ -95,19 +101,23 @@ function f8r_enable_feature( string $vendor, string $group, string $feature = ''
  *
  * @return bool
  */
-function f8r_disable_feature( string $vendor, string $group, string $feature = '', int $blog_id ) {
+function f8r_disable_feature( string $vendor, string $group, string $feature = '', int $blog_id = 0 ): bool {
 	global $f8r_registered_features;
 
 	$vendor  = sanitize_key( $vendor );
 	$group   = sanitize_key( $group );
 	$feature = sanitize_key( $feature );
+	$blog_id = absint( $blog_id );	
 
 	// Is group or feature registered?
 	if ( ! f8r_check_registered_features( 'f8r_disable_feature', $vendor, $group, $feature ) ) {
 		return false;
 	}
 
-	switch_to_blog( $blog_id );
+	if ( $blog_id != 0 ) {
+		switch_to_blog( $blog_id );
+	}
+
 	$blog_features = get_option( 'f8r_features', array() );
 
 	// disable/remove all group-features
@@ -128,16 +138,18 @@ function f8r_disable_feature( string $vendor, string $group, string $feature = '
 	if ( empty( $blog_features[ $vendor ] ) ) {
 		unset( $blog_features[ $vendor ] );
 	}
-
+	$updated = false;
 	if ( empty( $blog_features ) ) {
-		delete_option( 'f8r_features' );
+		$updated = delete_option( 'f8r_features' );
 	} else {
-		update_option( 'f8r_features', $blog_features );
+		$updated = update_option( 'f8r_features', $blog_features );
 	}
 
-	restore_current_blog();
+	if ( $blog_id != 0 ) {
+		restore_current_blog();
+	}
 
-	return true;
+	return $updated;
 }
 
 /**
@@ -150,22 +162,34 @@ function f8r_disable_feature( string $vendor, string $group, string $feature = '
  *
  * @return bool
  */
-function f8r_is_feature_enabled( string $vendor, string $group, string $feature = '', int $blog_id ) {
+function f8r_is_feature_enabled( string $vendor, string $group, string $feature = '', int $blog_id = 0 ): bool {
 
 	global $f8r_registered_features;
 
 	$vendor     = sanitize_key( $vendor );
 	$group      = sanitize_key( $group );
 	$feature    = sanitize_key( $feature );
+	$blog_id    = absint( $blog_id );
 	$is_enabled = true;
+
+	// Shortcircuit enabled check
+	/**
+	 * Filter
+	 */
+	$enabled_filter = apply_filters('f8r/is_feature_enabled', null, $vendor, $group, $feature);
+	if ( null !== $enabled_filter ) {
+		return $enabled_filter;
+	}
 
 	// Is group or feature registered?
 	if ( ! f8r_check_registered_features( 'f8r_is_feature_enabled', $vendor, $group, $feature ) ) {
 		return false;
 	}
 
-	switch_to_blog( $blog_id );
-
+	if ( $blog_id != 0 ) {
+		switch_to_blog( $blog_id );
+	}
+	
 	$blog_features = get_option( 'f8r_features', array() );
 
 	if ( '' !== $feature ) {
@@ -189,8 +213,10 @@ function f8r_is_feature_enabled( string $vendor, string $group, string $feature 
 		}
 	}
 
-	restore_current_blog();
-
+	if ( $blog_id != 0 ) {
+		restore_current_blog();
+	}
+	
 	return (bool) $is_enabled;
 }
 
@@ -201,24 +227,17 @@ function f8r_is_feature_enabled( string $vendor, string $group, string $feature 
  *
  * @return array
  */
-function f8r_get_all_features( int $blog_id = null ) {
-
+function f8r_get_all_features( int $blog_id = 0 ): array {
 	global $f8r_registered_features;
-	$all_features = $f8r_registered_features;
-	if ( ! $blog_id ) {
-		$blog_id = get_current_blog_id();
+	
+	$all_features =	$f8r_registered_features;
+	$global_features_data = get_site_option( 'f8r_features', array() );
+
+	if ( $blog_id != 0 ) {
+		switch_to_blog( $blog_id );
 	}
-
-	// Get global feature data (teaser, ...)
-	$main_site_id = get_main_site_id();
-	switch_to_blog( $main_site_id );
-	$global_features_data = get_option( 'f8r_features', array() );
-	restore_current_blog();
-
-	// Get enabled blog features
-	switch_to_blog( $blog_id );
+	
 	$blog_features = get_option( 'f8r_features', array() );
-	restore_current_blog();
 
 	if ( $all_features ) {
 		// sorting vendors
@@ -253,7 +272,9 @@ function f8r_get_all_features( int $blog_id = null ) {
 			}
 		}
 	}
-
+	if ( $blog_id != 0 ) {
+		restore_current_blog();
+	}
 	return $all_features;
 }
 
@@ -262,9 +283,9 @@ function f8r_get_all_features( int $blog_id = null ) {
  *
  * @param array $feature_data
  *
- * @return bool|false
+ * @return bool
  */
-function f8r_update_feature( array $feature_data ) {
+function f8r_update_feature( array $feature_data ): bool {
 
 	global $f8r_registered_features;
 
@@ -280,26 +301,11 @@ function f8r_update_feature( array $feature_data ) {
 		return false;
 	}
 
-	// save the "enable" status for/from main site features
-	$f8r_data = get_option( 'f8r_features', false );
-	if ( $f8r_data ) {
-		foreach ( $f8r_data as $vendor_d => $groups_d ) {
-			foreach ( $groups_d as $group_d => $features_d ) {
-				foreach ( $features_d as $feature_d => $feature_d_data ) {
-					if ( isset ( $f8r_data[ $vendor_d ][ $group_d ][ $feature_d ]['enabled'] ) ) {
-						$f8r_registered_features[ $vendor_d ][ $group_d ][ $feature_d ]['enabled'] = true;
-					}
-				}
-			}
-		}
-	}
-
 	$f8r_registered_features[ $vendor ][ $group ][ $feature ]['teaser_title']     = $teaser_title;
 	$f8r_registered_features[ $vendor ][ $group ][ $feature ]['teaser_text_html'] = $teaser_text_html;
 	$f8r_registered_features[ $vendor ][ $group ][ $feature ]['teaser_url']       = $teaser_url;
-	update_option( 'f8r_features', $f8r_registered_features );
+	return update_site_option( 'f8r_features', $f8r_registered_features );
 
-	return true;
 }
 
 /**
@@ -313,7 +319,7 @@ function f8r_update_feature( array $feature_data ) {
  *
  * @return bool
  */
-function f8r_check_registered_features( string $function_name, string $vendor, string $group, string $feature = '', $feature_check = false ) {
+function f8r_check_registered_features( string $function_name, string $vendor, string $group, string $feature = '', $feature_check = false ): bool {
 	global $f8r_registered_features;
 
 	$function_name = sanitize_key( $function_name );
@@ -323,7 +329,7 @@ function f8r_check_registered_features( string $function_name, string $vendor, s
 
 	// Is group or feature registered?
 	if ( ! $f8r_registered_features || ! isset( $f8r_registered_features[ $vendor ][ $group ] ) || ( ! isset( $f8r_registered_features[ $vendor ][ $group ][ $feature ] ) && ( '' !== $feature || $feature_check ) ) ) {
-		_doing_it_wrong( $function_name, sprintf( 'Feature: %s in group: %s not found!', $feature, $group ), '5.8.1' );
+		_doing_it_wrong( $function_name, sprintf( 'Feature: %s or group: %s not found!', $feature, $group ), '5.8.1' );
 
 		return false;
 	}
@@ -333,6 +339,6 @@ function f8r_check_registered_features( string $function_name, string $vendor, s
 
 // Work with wp-cli
 if ( defined( 'WP_CLI' ) && WP_CLI && method_exists( 'WP_CLI', 'add_command' ) ) {
-	require_once WPMU_PLUGIN_DIR . '/f8r-wp-cli/class-featurizer-wp-cli-command.php';
+	require_once __DIR__ . '/f8r-wp-cli/class-featurizer-wp-cli-command.php';
 	WP_CLI::add_command( 'f8r', 'Featurizer_WP_CLI_Command' );
 }
