@@ -94,6 +94,7 @@ function f8r_enable_feature( string $vendor, string $group, string $feature = ''
 	}
 
 	return $updated;
+  
 }
 
 /**
@@ -160,6 +161,7 @@ function f8r_disable_feature( string $vendor, string $group, string $feature = '
 	}
 
 	return $updated;
+
 }
 
 /**
@@ -285,6 +287,7 @@ function f8r_get_all_features( int $blog_id = 0 ): array {
 	if ( $blog_id != 0 ) {
 		restore_current_blog();
 	}
+
 	return $all_features;
 }
 

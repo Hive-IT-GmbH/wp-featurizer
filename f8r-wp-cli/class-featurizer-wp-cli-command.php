@@ -74,10 +74,10 @@ class Featurizer_WP_CLI_Command extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [<vendor>]
+	 * <vendor>
 	 * : The vendor name
 	 *
-	 * [<group>]
+	 * <group>
 	 * : The group name
 	 *
 	 * [<feature>]
@@ -135,10 +135,10 @@ class Featurizer_WP_CLI_Command extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [<vendor>]
+	 * <vendor>
 	 * : The vendor name
 	 *
-	 * [<group>]
+	 * <group>
 	 * : The group name
 	 *
 	 * [<feature>]
@@ -206,10 +206,10 @@ class Featurizer_WP_CLI_Command extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [<vendor>]
+	 * <vendor>
 	 * : The vendor name
 	 *
-	 * [<group>]
+	 * <group>
 	 * : The group name
 	 *
 	 * [<feature>]
