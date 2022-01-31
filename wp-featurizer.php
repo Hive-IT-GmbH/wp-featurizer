@@ -13,7 +13,7 @@
  * Plugin Name:   WP-Featurizer (F8R)
  * Plugin URI:    https://github.com/Hive-IT-GmbH/wp-featurizer
  * Description:   This plugin allows you to use Feature Flags in Plugins and Themes. This plugin requires a WP-Multisite and control over the code and options.
- * Version:       1.3.0
+ * Version:       1.3.1
  * Author:        Hive-IT-GmbH
  * Author URI:    https://hive-it.de/
  * License:       GPLv3 or later
@@ -71,6 +71,11 @@ function f8r_enable_feature( string $vendor, string $group, string $feature = ''
 		switch_to_blog( $blog_id );
 	}
 
+	// Already enabled
+	if ( f8r_is_feature_enabled( $vendor, $group, $feature ) ) {
+		return true;
+	}
+
 	$blog_features = get_option( 'f8r_features', array() );
 
 	if ( '' !== $feature ) {
@@ -116,6 +121,11 @@ function f8r_disable_feature( string $vendor, string $group, string $feature = '
 
 	if ( $blog_id != 0 ) {
 		switch_to_blog( $blog_id );
+	}
+
+	// Already disabled
+	if ( ! f8r_is_feature_enabled( $vendor, $group, $feature ) ) {
+		return true;
 	}
 
 	$blog_features = get_option( 'f8r_features', array() );
@@ -304,8 +314,9 @@ function f8r_update_feature( array $feature_data ): bool {
 	$f8r_registered_features[ $vendor ][ $group ][ $feature ]['teaser_title']     = $teaser_title;
 	$f8r_registered_features[ $vendor ][ $group ][ $feature ]['teaser_text_html'] = $teaser_text_html;
 	$f8r_registered_features[ $vendor ][ $group ][ $feature ]['teaser_url']       = $teaser_url;
-	return update_site_option( 'f8r_features', $f8r_registered_features );
+	update_site_option( 'f8r_features', $f8r_registered_features );
 
+	return true;
 }
 
 /**
