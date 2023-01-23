@@ -404,11 +404,20 @@ class Featurizer_WP_CLI_Command extends WP_CLI_Command {
                 foreach ( $features as $feature => $data ) {
                     if (!($data['checked'] ?? false))
                     {
-                        WP_CLI::error('The following feature rule is not implemented and has not been checked: ' . $vendor . "::" . $group . "::" . $feature);
+                        WP_CLI::warning('Watch out! The following feature rule is not implemented and has not been checked, feature will be deactivated: ' . $vendor . "::" . $group . "::" . $feature);
                     }
                 }
             }
         }
+        WP_CLI::confirm('Do you want to update the feature toggle list?');
+
+        $blog_features = get_option( 'f8r_features', array() );
+
+        $blog_features[ $vendor ][ $group ][ $feature ]['enabled'] = true;
+        update_option( 'f8r_features', $blog_features );
+        // TODO wird im Blog nur das Enabled Flag gespeichert?
+        WP_CLI::success('Die Einstellung wurde erfolgreich gesetzt');
+
         //$formatter = new Formatter( $formatter_args, null, 'site' );
         //$formatter->display_items( $feature_items );
     }
@@ -419,6 +428,10 @@ class Featurizer_WP_CLI_Command extends WP_CLI_Command {
         if (!isset($feature_list[$vendor][$group][$feature]))
         {
             WP_CLI::warning('The following feature-check has been configured but was not registered via module: ' . $vendor . '::' . $group . '::' . $feature);
+        }
+        else if ($feature_list[$vendor][$group][$feature]['enabled'] != $enabled)
+        {
+            WP_CLI::warning('The determined feature enablement (' . ($enabled?'true':'false') . ') differs from saved value (' . ($feature_list[$vendor][$group][$feature]['enabled']?'true':'false') . '): ' . $vendor . '::' . $group . '::' . $feature);
         }
         $feature_list[$vendor][$group][$feature]['enabled'] = $enabled;
         $feature_list[$vendor][$group][$feature]['checked'] = true;
