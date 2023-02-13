@@ -312,8 +312,8 @@ class Featurizer_WP_CLI_Command extends WP_CLI_Command {
         // Load necessary configurations
         $mw_features_container = get_option('mw_features_container');
         $mw_configurations_container = get_option('mw_configurations_container');
-        $mw_customizer = get_option('theme_mods_enfold'); // TODO are there other theme_mods != enfold?
-        $installed_plugins = get_plugins();
+        $mw_customizer = get_option('theme_mods_enfold');
+        $installed_plugins = get_plugins(); //TODO Raus und stattdessen unten direkt mit is_plugin_active arbeiten
         $shortcodes = [];
         $ignoredShortcodes = [];
         foreach (get_posts() as $wp_post)
@@ -338,7 +338,7 @@ class Featurizer_WP_CLI_Command extends WP_CLI_Command {
 
         $v = "maklerwerft";
         $g = "abmeldewerft";
-        self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            , array_search($g, array_column($installed_plugins, 'TextDomain'))); // TODO ist TextDomain das richtige Feld dafuer?
+        self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            ,  array_search($g, array_column($installed_plugins, 'TextDomain'))); // TODO ist TextDomain das richtige Feld dafuer?
         $g = "accountdeaktivierung";
         self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            , array_search($g, array_column($installed_plugins, 'TextDomain')));
         $g = "anfragewerft";
@@ -363,7 +363,7 @@ class Featurizer_WP_CLI_Command extends WP_CLI_Command {
         self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            ,  array_search($g, array_column($installed_plugins, 'TextDomain')));
         $g = "immowerft";
         self::setFeatureEnabled($feature_list, $v, $g, 'advanced_card_sort' , ($mw_features_container['mw_card_sorting_active']??false) == true);
-        self::setFeatureEnabled($feature_list, $v, $g, 'boenitaet'          , ($mw_configurations_container['mw_bonitaetscheck']??false) == true);
+        self::setFeatureEnabled($feature_list, $v, $g, 'bonitaet'          , ($mw_configurations_container['mw_bonitaetscheck']??false) == true);
         self::setFeatureEnabled($feature_list, $v, $g, 'auction'            , ($mw_features_container['mw_auction_active']??false) == true);
         self::setFeatureEnabled($feature_list, $v, $g, 'XXXXXXXX'           , ($mw_configurations_container['immodepot_data_room_active']??false) == true); //TODO Featurename fehlt: Datenraum
         self::setFeatureEnabled($feature_list, $v, $g, 'immodepot'          , in_array('immowerft_online_property_depot', $shortcodes));
@@ -406,17 +406,26 @@ class Featurizer_WP_CLI_Command extends WP_CLI_Command {
                     {
                         WP_CLI::warning('Watch out! The following feature rule is not implemented and has not been checked, feature will be deactivated: ' . $vendor . "::" . $group . "::" . $feature);
                     }
+	                // Directly save the enabled state to the feature. We don't wnat an array with 'checked' and 'enabled' at this point
+					$feature_list[$vendor][$group][$feature] = $data["enabled"];
+					if (!$data["enabled"])
+					{
+						unset($feature_list[$vendor][$group][$feature]);
+					}
                 }
             }
         }
         WP_CLI::confirm('Do you want to update the feature toggle list?');
 
-        $blog_features = get_option( 'f8r_features', array() );
-
-        $blog_features[ $vendor ][ $group ][ $feature ]['enabled'] = true;
-        update_option( 'f8r_features', $blog_features );
-        // TODO wird im Blog nur das Enabled Flag gespeichert?
-        WP_CLI::success('Die Einstellung wurde erfolgreich gesetzt');
+        print_r($feature_list);
+        if (update_option( 'f8r_features', $feature_list ))
+        {
+            WP_CLI::success('Die Einstellung wurde erfolgreich gesetzt');
+        }
+        else
+        {
+            WP_CLI::error('Der Wert konnte in der Datenbank nicht geupdated werden');
+        }
 
         //$formatter = new Formatter( $formatter_args, null, 'site' );
         //$formatter->display_items( $feature_items );
@@ -445,8 +454,16 @@ class Featurizer_WP_CLI_Command extends WP_CLI_Command {
      */
     public function extractShortcodes($wp_post, array & $ignoredShortcodes, array & $shortcodes): array
     {
+	    global $shortcode_tags;
+		// print_r($shortcode_tags);
         $matches = [];
-        $shortcodeCount = preg_match_all("^\[(.*?)\]^", $wp_post->post_content, $matches);
+	    preg_match_all( '@\[([^<>&/\[\]\x00-\x20=]++)@', $wp_post->post_content, $matches );
+	    print_r($matches);
+		$tagnames = array_intersect( array_keys( $shortcode_tags ), $matches[1] );
+	    print_r($tagnames);
+	    $shortcodes = array_merge($shortcodes, $tagnames);
+		return $shortcodes;
+        /*$shortcodeCount = preg_match_all("^\[(.*?)\]^", $wp_post->post_content, $matches);
         if ($shortcodeCount > 0) {
             foreach ($matches[1] as $match) {
                 // Getting shortcode name without params
@@ -458,7 +475,7 @@ class Featurizer_WP_CLI_Command extends WP_CLI_Command {
                 }
                 $shortcodes[] = $matchParts[0];
             }
-        }
+        }*/
         return $matches;
     }
 }
