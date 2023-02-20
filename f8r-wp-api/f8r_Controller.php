@@ -35,7 +35,7 @@ class f8r_Controller extends WP_REST_Controller {
 			return $blog_id;
 		}
 		$result = f8r_is_feature_enabled($r->get_param('vendor'), $r->get_param('group'), $r->get_param('feature'), $blog_id);
-		return new WP_REST_Response( array( 'err' => '', 'result' => $result ), 200 );
+		return new WP_REST_Response( array( 'err' => '', 'result' => $result, 'blub' => get_currentuserinfo() ), 200 );
 	}
 	function route_enable_feature(WP_REST_Request $r) {
 		$blog_id = $this->get_blog_id_from_url($r);
@@ -67,17 +67,12 @@ class f8r_Controller extends WP_REST_Controller {
 		$blog_id = get_blog_id_from_url($r->get_param('siteurl'));
 		if ($blog_id == 0) {
 			return new WP_Error('site_not_found', 'Site not found.', ['status' => 404]);
-			/*return new WP_REST_Response( array(
-				'err'    => 'Site not found',
-				'result' =>
-			), 404 );*/
 		}
 		return $blog_id;
 	}
 
 	function check_if_user_is_authorized()
 	{
-		return true;
-		return is_user_logged_in() && current_user_can('manage_network');
+		return current_user_can('manage_network');
 	}
 }
