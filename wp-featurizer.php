@@ -52,25 +52,20 @@ function f8r_register_feature( string $vendor, string $group, string $feature ) 
  * @param string $feature
  * @param int $blog_id
  *
- * @return bool
+ * @return mixed
  */
-function f8r_enable_feature( string $vendor, string $group, string $feature = '', int $blog_id = 0 ): bool {
+function f8r_enable_feature( string $vendor, string $group, string $feature = '', int $blog_id = 0 ): mixed {
 
 	global $f8r_registered_features;
-	$vendor  = sanitize_key( $vendor );
-	$group   = sanitize_key( $group );
-	$feature = sanitize_key( $feature );
-	$blog_id = absint( $blog_id );
+	global $f8r_registered_features;
 
-	// Is group or feature registered?
-	if ( ! f8r_check_registered_features( 'f8r_enable_feature', $vendor, $group, $feature ) ) {
-		return false;
+	$result = f8r_sanitize_and_check($vendor, $group, $feature, $blog_id);
+	if (is_wp_error($result))
+	{
+		return $result;
 	}
-	
-	if ( $blog_id == 0 ) {
-		return false;
-	} else {
-		switch_to_blog( $blog_id );
+	else {
+		list($vendor, $group, $feature) = $result;
 	}
 
 	// Already enabled
@@ -90,12 +85,13 @@ function f8r_enable_feature( string $vendor, string $group, string $feature = ''
 		}
 	}
 	$updated = update_option( 'f8r_features', $blog_features );
-
-	if ( $blog_id != 0 ) {
-		restore_current_blog();
+	restore_current_blog();
+	if (!$updated)	{
+		return new WP_Error('Database error', 'Feature toggle could not be updated');
 	}
 
-	return $updated;
+	// return new state (true = enabled)
+	return true;
   
 }
 
@@ -107,30 +103,24 @@ function f8r_enable_feature( string $vendor, string $group, string $feature = ''
  * @param string $feature
  * @param int $blog_id
  *
- * @return bool
+ * @return mixed
  */
-function f8r_disable_feature( string $vendor, string $group, string $feature = '', int $blog_id = 0 ): bool {
+function f8r_disable_feature( string $vendor, string $group, string $feature = '', int $blog_id = 0 ): mixed {
 	global $f8r_registered_features;
 
-	$vendor  = sanitize_key( $vendor );
-	$group   = sanitize_key( $group );
-	$feature = sanitize_key( $feature );
-	$blog_id = absint( $blog_id );	
-
-	// Is group or feature registered?
-	if ( ! f8r_check_registered_features( 'f8r_disable_feature', $vendor, $group, $feature ) ) {
-		return false;
+	$result = f8r_sanitize_and_check($vendor, $group, $feature, $blog_id);
+	if (is_wp_error($result))
+	{
+		return $result;
 	}
-
-	if ( $blog_id == 0 ) {
-		return false;
-	} else {
-		switch_to_blog( $blog_id );
+	else {
+		list($vendor, $group, $feature) = $result;
 	}
 
 	// Already disabled
-	if ( ! f8r_is_feature_enabled( $vendor, $group, $feature ) ) {
-		return true;
+	if ( ! f8r_is_feature_enabled( $vendor, $group, $feature, $blog_id ) ) {
+		// return current state (false = disabled)
+		return false;
 	}
 
 	$blog_features = get_option( 'f8r_features', array() );
@@ -162,7 +152,11 @@ function f8r_disable_feature( string $vendor, string $group, string $feature = '
 
 	restore_current_blog();
 
-	return $updated;
+	if (!$updated) {
+		return new WP_Error('Database error', 'Feature toggle could not be updated');
+	}
+	// return new state (false = disabled)
+	return false;
 
 }
 
@@ -174,16 +168,18 @@ function f8r_disable_feature( string $vendor, string $group, string $feature = '
  * @param string $feature
  * @param int $blog_id
  *
- * @return bool
+ * @return bool|WP_Error
  */
-function f8r_is_feature_enabled( string $vendor, string $group, string $feature = '', int $blog_id = 0 ): bool {
+function f8r_is_feature_enabled( string $vendor, string $group, string $feature = '', int $blog_id = 0 ): mixed {
 
 	global $f8r_registered_features;
 
-	$vendor     = sanitize_key( $vendor );
-	$group      = sanitize_key( $group );
-	$feature    = sanitize_key( $feature );
-	$blog_id    = absint( $blog_id );
+	$result = f8r_sanitize_and_check($vendor, $group, $feature, $blog_id);
+	if (is_wp_error($result)) {
+		return $result;
+	} else {
+		list($vendor, $group, $feature) = $result;
+	}
 	$is_enabled = true;
 
 	// Shortcircuit enabled check
@@ -193,16 +189,6 @@ function f8r_is_feature_enabled( string $vendor, string $group, string $feature 
 	$enabled_filter = apply_filters('f8r/is_feature_enabled', null, $vendor, $group, $feature);
 	if ( null !== $enabled_filter ) {
 		return $enabled_filter;
-	}
-
-	// Is group or feature registered?
-	if ( ! f8r_check_registered_features( 'f8r_is_feature_enabled', $vendor, $group, $feature ) ) {
-		// TODO throw error if feature does not exist?
-		return false;
-	}
-
-	if ( $blog_id != 0 ) {
-		switch_to_blog( $blog_id );
 	}
 	
 	$blog_features = get_option( 'f8r_features', array() );
@@ -236,13 +222,43 @@ function f8r_is_feature_enabled( string $vendor, string $group, string $feature 
 }
 
 /**
+ * @param string $vendor
+ * @param string $group
+ * @param string $feature
+ * @param int $blog_id
+ *
+ * @return mixed array with sanitized values [$vendor, $group, $feature] or WP_Error if an error occurs
+ */
+function f8r_sanitize_and_check(string $vendor, string $group, string $feature, int $blog_id) : mixed {
+	$vendor     = sanitize_key( $vendor );
+	$group      = sanitize_key( $group );
+	$feature    = sanitize_key( $feature );
+	$blog_id    = absint( $blog_id );
+
+
+	// Is group or feature registered?
+	if ( ! f8r_check_registered_features( 'f8r_is_feature_enabled', $vendor, $group, $feature ) ) {
+		return new WP_Error('FeatureNotFound', 'The feature was not found');
+	}
+
+	if ( $blog_id == 0 ) {
+		return new WP_Error('SiteNotFound', 'No blog id given');
+	}
+	else {
+		switch_to_blog( $blog_id );
+	}
+
+	return  [$vendor, $group, $feature];
+}
+
+/**
  * Get all features from current site
  *
  * @param int $blog_id
  *
  * @return array
  */
-function f8r_get_all_features( int $blog_id = 0 ): array|null {
+function f8r_get_all_features( int $blog_id = 0 ): mixed {
 	global $f8r_registered_features;
 	
 	$all_features =	$f8r_registered_features;

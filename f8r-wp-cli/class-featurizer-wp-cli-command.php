@@ -121,7 +121,7 @@ class Featurizer_WP_CLI_Command extends WP_CLI_Command {
 
 		// Is group or feature registered?
 		if ( ! f8r_check_registered_features( 'f8r_is_feature_enabled', $vendor, $group, $feature ) ) {
-			WP_CLI::warning( "undefined" );
+			WP_CLI::warning( "Feature not found" );
 
 			return;
 		}
