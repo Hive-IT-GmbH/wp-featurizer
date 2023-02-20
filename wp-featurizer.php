@@ -82,11 +82,11 @@ function f8r_enable_feature( string $vendor, string $group, string $feature = ''
 
 	if ( '' !== $feature ) {
 		// enable single feature
-		$blog_features[ $vendor ][ $group ][ $feature ] = true;
+		$blog_features[ $vendor ][ $group ][ $feature ]['enabled'] = true;
 	} else {
 		// enable all group-features
 		foreach ( $f8r_registered_features[ $vendor ][ $group ] as $group_feature => $value ) {
-			$blog_features[ $vendor ][ $group ][ $group_feature ] = true;
+			$blog_features[ $vendor ][ $group ][ $group_feature ]['enabled'] = true;
 		}
 	}
 	$updated = update_option( 'f8r_features', $blog_features );
@@ -264,7 +264,7 @@ function f8r_get_all_features( int $blog_id = 0 ): array|null {
 				// sorting features
 				ksort( $all_features[ $vendor ][ $group ] );
 				foreach ( $features as $feature => $enabled ) {
-                    $all_features[ $vendor ][ $group ][ $feature ]['enabled'] = $blog_features[ $vendor ][ $group ][ $feature ]['enabled'] ?? false;
+          $all_features[ $vendor ][ $group ][ $feature ]['enabled'] = $blog_features[ $vendor ][ $group ][ $feature ]['enabled'] ?? false;
 					// Add global feature data
 					$all_features[ $vendor ][ $group ][ $feature ]['teaser_title']     = $global_features_data[ $vendor ][ $group ][ $feature ]['teaser_title'] ?? '';
 					$all_features[ $vendor ][ $group ][ $feature ]['teaser_text_html'] = $global_features_data[ $vendor ][ $group ][ $feature ]['teaser_text_html'] ?? '';
