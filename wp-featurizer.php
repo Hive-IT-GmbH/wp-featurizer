@@ -60,18 +60,20 @@ function f8r_enable_feature( string $vendor, string $group, string $feature = ''
 	global $f8r_registered_features;
 
 	$result = f8r_sanitize_and_check($vendor, $group, $feature, $blog_id);
-	if (is_wp_error($result))
-	{
+	if (is_wp_error($result)) {
 		return $result;
-	}
-	else {
+	} else {
 		list($vendor, $group, $feature) = $result;
 	}
 
 	// Already enabled
-	if ( f8r_is_feature_enabled( $vendor, $group, $feature ) ) {
+	$feature_is_already_enabled = f8r_is_feature_enabled( $vendor, $group, $feature, $blog_id );
+	if ($feature_is_already_enabled  === true) {
 		return true;
+	} else if (is_wp_error($feature_is_already_enabled)) {
+		return $feature_is_already_enabled;
 	}
+
 
 	$blog_features = get_option( 'f8r_features', array() );
 
@@ -84,6 +86,7 @@ function f8r_enable_feature( string $vendor, string $group, string $feature = ''
 			$blog_features[ $vendor ][ $group ][ $group_feature ] = true;
 		}
 	}
+
 	$updated = update_option( 'f8r_features', $blog_features );
 	restore_current_blog();
 	if (!$updated)	{
@@ -269,7 +272,6 @@ function f8r_get_all_features( int $blog_id = 0 ): mixed {
 	}
 	
 	$blog_features = get_option( 'f8r_features', array() );
-
 	if ( $all_features ) {
 		// sorting vendors
 		ksort( $all_features );
@@ -280,7 +282,7 @@ function f8r_get_all_features( int $blog_id = 0 ): mixed {
 				// sorting features
 				ksort( $all_features[ $vendor ][ $group ] );
 				foreach ( $features as $feature => $enabled ) {
-                    $all_features[ $vendor ][ $group ][ $feature ]['enabled'] = $blog_features[ $vendor ][ $group ][ $feature ]['enabled'] ?? false;
+                    $all_features[ $vendor ][ $group ][ $feature ]['enabled'] = $blog_features[ $vendor ][ $group ][ $feature ] ?? false;
 					// Add global feature data
 					$all_features[ $vendor ][ $group ][ $feature ]['teaser_title']     = $global_features_data[ $vendor ][ $group ][ $feature ]['teaser_title'] ?? '';
 					$all_features[ $vendor ][ $group ][ $feature ]['teaser_text_html'] = $global_features_data[ $vendor ][ $group ][ $feature ]['teaser_text_html'] ?? '';
