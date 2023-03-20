@@ -366,3 +366,8 @@ if ( defined( 'WP_CLI' ) && WP_CLI && method_exists( 'WP_CLI', 'add_command' ) )
 
 $f8rController = new f8r_Controller();
 $f8rController->register_rest_route();
+
+
+include_once 'quota-wp-api/quota_Controller.php';
+$quotaController = new quota_Controller();
+$quotaController->register_rest_route();
