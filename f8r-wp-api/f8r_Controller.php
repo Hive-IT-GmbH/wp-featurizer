@@ -6,6 +6,7 @@ class f8r_Controller extends WP_REST_Controller {
 	private $f8r_rest_namespace = 'featurizer/v1';
 	private $rest_route_base = '/site/(?P<siteurl>[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,}))';
 
+
 	function register_rest_route()
 	{
 		add_action( 'rest_api_init', function () {
@@ -27,14 +28,20 @@ class f8r_Controller extends WP_REST_Controller {
 					'permission_callback' => [$this, 'check_if_user_is_authorized']
 				)
 			]);
-			register_rest_route( $this->f8r_rest_namespace, $this->rest_route_base . '/features',
-				[
-					array (
-						'methods' => WP_REST_Server::READABLE,
-						'callback' =>  [$this, 'route_list_features'],
-						'permission_callback' => [$this, 'check_if_user_is_authorized']
-					)
-				]);
+			register_rest_route( $this->f8r_rest_namespace, $this->rest_route_base . '/features', [
+				array (
+					'methods' => WP_REST_Server::READABLE,
+					'callback' =>  [$this, 'route_list_features'],
+					'permission_callback' => [$this, 'check_if_user_is_authorized']
+				)
+			]);
+			register_rest_route( $this->f8r_rest_namespace, $this->rest_route_base . '/temp_add_list_of_features', [
+				array (
+					'methods' => WP_REST_Server::READABLE,
+					'callback' =>  [$this, 'temp_add_list_of_features'],
+					'permission_callback' => [$this, 'check_if_user_is_authorized']
+				)
+			]);
 		} );
 	}
 	function route_list_features(WP_REST_Request $r) {
@@ -115,5 +122,81 @@ class f8r_Controller extends WP_REST_Controller {
 		} else {
 			return new WP_REST_Response( array( 'result' => $result ), 200 );
 		}
+	}
+
+	function temp_add_list_of_features()
+	{
+		$feature_list = [];
+		$v = "maklerwerft";
+		$g = "abmeldewerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "accountdeaktivierung";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "anfragewerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "benutzerwerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'login_area'         );
+		self::setFeatureEnabled($feature_list, $v, $g, 'XXXXXXXX'           );
+		self::setFeatureEnabled($feature_list, $v, $g, 'XXXXXXXX'           );
+		self::setFeatureEnabled($feature_list, $v, $g, 'XXXXXXXX'           );
+		self::setFeatureEnabled($feature_list, $v, $g, 'XXXXXXXX'           );
+		$g = "bewerberwerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "downloadwerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "filialenwerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "finanzierungswerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "flowfactwerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "geolagenWerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "immowerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'advanced_card_sort' );
+		self::setFeatureEnabled($feature_list, $v, $g, 'bonitaet'           );
+		self::setFeatureEnabled($feature_list, $v, $g, 'auction'            );
+		self::setFeatureEnabled($feature_list, $v, $g, 'XXXXXXXX'           );
+		self::setFeatureEnabled($feature_list, $v, $g, 'immodepot'          );
+		self::setFeatureEnabled($feature_list, $v, $g, 'XXXXXXXXX'          );
+		self::setFeatureEnabled($feature_list, $v, $g, 'XXXXXXXXX'          );
+		self::setFeatureEnabled($feature_list, $v, $g, 'XXXXXXXXX'          );
+		self::setFeatureEnabled($feature_list, $v, $g, 'ogulo'              );
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "kaeuferfinder";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "kundenstimmenwerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "marketingwerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "marktkartenwerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "mitarbeiterwerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "onofficewerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		self::setFeatureEnabled($feature_list, $v, $g, 'XXXXXXXX'           );
+		$g = "printwerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		self::setFeatureEnabled($feature_list, $v, $g, 'XXXXXXXXX'          );
+		$g = "propstackwerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "terminwerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		$g = "tippgeberwerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+		self::setFeatureEnabled($feature_list, $v, $g, 'XXXXXXXXX'          );
+		$g = "wertermittlungswerft";
+		self::setFeatureEnabled($feature_list, $v, $g, 'enabled'            );
+
+		return add_site_option('f8r_features', $feature_list);
+	}
+
+	private static function setFeatureEnabled(& $feature_list, string $v, string $g, string $string) {
+		$feature_list[$v][$g][$string] = [
+			'teaser_title' => $g . ': ' . $string,
+			'teaser_text_html' => '<b>$string</b><br>Lorem Ipsum powered by ' . $v,
+			'teaser_url' => 'https://meinimmoportal.eu/',
+		];
 	}
 }

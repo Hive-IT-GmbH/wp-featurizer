@@ -266,7 +266,7 @@ function f8r_get_all_features( int $blog_id = 0 ): mixed {
 	
 	$all_features =	$f8r_registered_features;
 	$global_features_data = get_site_option( 'f8r_features', array() );
-
+return $global_features_data;
 	if ( $blog_id != 0 ) {
 		switch_to_blog( $blog_id );
 	}
@@ -305,16 +305,16 @@ function f8r_get_all_features( int $blog_id = 0 ): mixed {
  *
  * @return bool
  */
-function f8r_update_feature( array $feature_data ): bool {
+function f8r_update_feature( string $vendor, string $group, string $feature, string $teaser_title = '', string $teaser_text_html = '', string $teaser_url = '' ): bool {
 
 	global $f8r_registered_features;
 
-	$vendor           = sanitize_key( $feature_data['vendor'] ?? '' );
-	$group            = sanitize_key( $feature_data['group'] ?? '' );
-	$feature          = sanitize_key( $feature_data['feature'] ?? '' );
-	$teaser_title     = sanitize_text_field( $feature_data['teaser_title'] ?? '' );
-	$teaser_text_html = wp_kses_post( $feature_data['teaser_text_html'] ?? '' );
-	$teaser_url       = esc_url_raw( $feature_data['teaser_url'] ?? '' );
+	$vendor           = sanitize_key( $vendor );
+	$group            = sanitize_key( $group );
+	$feature          = sanitize_key( $feature );
+	$teaser_title     = sanitize_text_field( $teaser_title ?? '' );
+	$teaser_text_html = wp_kses_post( $teaser_text_html ?? '' );
+	$teaser_url       = esc_url_raw( $teaser_url ?? '' );
 
 	// Is feature registered?
 	if ( ! f8r_check_registered_features( 'f8r_update_feature', $vendor, $group, $feature, true ) ) {
