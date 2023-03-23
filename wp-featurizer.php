@@ -6,20 +6,18 @@
  *
  * @package           Hive-IT-GmbH/wp-featurizer
  * @author            Hive-IT GmbH
- * @copyright         2021 Hive-IT GmbH
  * @license           GPL-3.0-or-later
  *
  * @wordpress-plugin
  * Plugin Name:   WP-Featurizer (F8R)
  * Plugin URI:    https://github.com/Hive-IT-GmbH/wp-featurizer
  * Description:   This plugin allows you to use Feature Flags in Plugins and Themes. This plugin requires a WP-Multisite and control over the code and options.
- * Version:       1.3.1
+ * Version:       1.3.2
  * Author:        Hive-IT-GmbH
  * Author URI:    https://hive-it.de/
  * License:       GPLv3 or later
  * Network:       true
  */
-define( 'WP_ENVIRONMENT_TYPE', 'local' );
 if ( ! defined( 'ABSPATH' ) ) {
 	return false;
 }
